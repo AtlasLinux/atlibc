@@ -3,7 +3,7 @@
 #include <io.h>
 #include <string.h>
 
-int uwu(void) {
+int main(void) {
     char buf[256];
     String msg = { .chars = buf, .len = 256 };
     while (1) {
