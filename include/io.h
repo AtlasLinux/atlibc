@@ -2,8 +2,7 @@
 #define ATLIBC_IO_H
 
 #include <string.h>
-#include <def.h>
-#include <int.h>
+#include <types.h>
 
 #define STDIN 0
 #define STDOUT 1

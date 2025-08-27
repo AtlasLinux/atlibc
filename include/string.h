@@ -1,7 +1,7 @@
 #ifndef ATLIBC_STRING_H
 #define ATLIBC_STRING_H
 
-#include <def.h>
+#include <types.h>
 
 typedef struct String {
     char* chars;
