@@ -11,6 +11,8 @@ CFLAGS    := -O0 -g3 \
              -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion \
              -Wno-switch -Wno-conversion -Wno-unused-but-set-variable
 
+DEPFLAGS = -MMD -MP -MF $(basename $@).d
+
 # Linker flags for freestanding apps
 LDFLAGS   := -nostdlib -static -Wl,-e,_start
 
@@ -27,6 +29,8 @@ OBJ_C   := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_C))
 OBJ_ASM := $(patsubst $(SRC_DIR)/%.asm,$(BUILD_DIR)/%.o,$(SRC_ASM))
 OBJ_ALL := $(OBJ_C) $(OBJ_ASM)
 
+DEPS := $(OBJ_C:.o=.d)
+
 # Define the startup asm source and its object (adjust if your start file name differs)
 START_SRC := $(SRC_DIR)/start.asm
 START_OBJ := $(BUILD_DIR)/start.o
@@ -37,9 +41,9 @@ LIBNAME := atlibc.a
 LIB     := $(LIBDIR)/$(LIBNAME)
 
 # Test program to build (user asked for test/foo.c)
-TEST_SRC := $(TEST_DIR)/hello.c
+TEST_SRC := $(TEST_DIR)/main.c
 TEST_OBJ := $(patsubst $(TEST_DIR)/%.c,$(BUILD_DIR)/test/%.o,$(TEST_SRC))
-TEST_BIN := $(BUILD_DIR)/hello
+TEST_BIN := $(BUILD_DIR)/main
 
 .PHONY: all lib test clean run
 
@@ -68,7 +72,7 @@ test: $(LIB) $(START_OBJ) $(TEST_OBJ)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 	@mkdir -p $(dir $@)
 	@echo "[CC] $<"
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
 
 # ASM -> object (NASM)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.asm | $(BUILD_DIR)
@@ -96,3 +100,7 @@ clean:
 # Run the test binary
 run: test
 	@./$(TEST_BIN)
+
+crun: clean run
+
+-include $(DEPS)

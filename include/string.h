@@ -1,11 +1,14 @@
 #ifndef ATLIBC_STRING_H
 #define ATLIBC_STRING_H
 
+#include <def.h>
+
 typedef struct String {
     char* chars;
-    int len;
+    size_t len;
+    size_t cap;
 } String;
 
-int string_strlen(char* str);
+size_t string_strlen(char* str);
 
 #endif
