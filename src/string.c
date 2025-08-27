@@ -8,3 +8,9 @@ size_t string_strlen(char* str) {
     }
     return i;
 }
+
+void string_clear(String* str) {
+    for (int i = 0; i < str->len; i++) {
+        str->chars[i] = (char)NULL;
+    }
+}

@@ -10,5 +10,6 @@ typedef struct String {
 } String;
 
 size_t string_strlen(char* str);
+void string_clear(String* str);
 
 #endif

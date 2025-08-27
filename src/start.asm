@@ -1,10 +1,10 @@
 global _start
 
-extern main
+extern uwu
 
 section .text
 _start:
-    call main
+    call uwu
 
     mov rdi, rax
     mov rax, 60
