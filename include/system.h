@@ -15,6 +15,6 @@
 #define SYS_MUNMAP 11
 
 
-extern long sys_call(long, long, long, long, long, long, long);
+extern long __syscall(long, long, long, long, long, long, long);
 
 #endif

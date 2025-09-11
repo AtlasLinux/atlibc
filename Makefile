@@ -41,9 +41,9 @@ LIBNAME := atlibc.a
 LIB     := $(LIBDIR)/$(LIBNAME)
 
 # Test program to build (user asked for test/foo.c)
-TEST_SRC := $(TEST_DIR)/main.c
-TEST_OBJ := $(patsubst $(TEST_DIR)/%.c,$(BUILD_DIR)/test/%.o,$(TEST_SRC))
-TEST_BIN := $(BUILD_DIR)/main
+TEST_SRCS := $(wildcard $(TEST_DIR)/*.c)
+TEST_BINS := $(patsubst $(TEST_DIR)/%.c,$(BUILD_DIR)/test/%,$(TEST_SRCS))
+TEST_OBJS := $(patsubst $(TEST_DIR)/%.c,$(BUILD_DIR)/test/%.o,$(TEST_SRCS))
 
 .PHONY: all lib test clean run
 
@@ -57,27 +57,51 @@ LIB_OBJS := $(filter-out $(START_OBJ), $(OBJ_ALL))
 
 $(LIB): $(LIB_OBJS) | $(LIBDIR)
 	@mkdir -p $(dir $@)
-	@echo "[AR] $@"
+	@printf "\033[1;36m[AR]\033[0m %s\n" "$@"
 	ar rcs $@ $(LIB_OBJS)
 	@ranlib $@ || true
 
-# Build the test app (freestanding). Link order matters: start -> test -> lib
-test: $(LIB) $(START_OBJ) $(TEST_OBJ)
-	@echo "[LD] $(TEST_BIN)"
-	$(CC) $(LDFLAGS) -o $(TEST_BIN) $(START_OBJ) $(TEST_OBJ) $(LIB)
+
+# Build each test binary separately
+test: $(LIB) $(START_OBJ) $(TEST_BINS)
+	@printf "\033[1;34m[TEST]\033[0m All test binaries built.\n"
+
+$(BUILD_DIR)/test/%: $(LIB) $(START_OBJ) $(BUILD_DIR)/test/%.o
+	@printf "\033[1;33m[LD]\033[0m %s\n" "$@"
+	$(CC) $(LDFLAGS) -o $@ $(START_OBJ) $(BUILD_DIR)/test/$*.o $(LIB)
+
+# Compile test sources to objects
+$(BUILD_DIR)/test/%.o: $(TEST_DIR)/%.c | $(BUILD_DIR)
+	@mkdir -p $(dir $@)
+	@printf "\033[1;32m[CC]\033[0m %s\n" "$<"
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Run all test binaries and check exit code
+run: test
+	@for bin in $(TEST_BINS); do \
+		printf "\033[1;35m[RUN]\033[0m %s\n" "$$bin"; \
+		./$$bin; \
+		ec=$$?; \
+		if [ $$ec -ne 0 ]; then \
+			printf "\033[1;31m[FAIL]\033[0m %s exited with code %d\n" "$$bin" "$$ec"; \
+			exit $$ec; \
+		else \
+			printf "\033[1;32m[PASS]\033[0m %s\n" "$$bin"; \
+		fi; \
+	done
 
 # Generic rules -----------------------------------------------------------
 
 # C -> object
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 	@mkdir -p $(dir $@)
-	@echo "[CC] $<"
+	@printf "\033[1;32m[CC]\033[0m %s\n" "$<"
 	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
 
 # ASM -> object (NASM)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.asm | $(BUILD_DIR)
 	@mkdir -p $(dir $@)
-	@echo "[ASM] $<"
+	@printf "\033[1;35m[ASM]\033[0m %s\n" "$<"
 	$(NASM) -f elf64 $< -o $@
 
 # Test source compilation (keeps tests separate under build/test/)
@@ -96,10 +120,6 @@ $(LIBDIR):
 # Clean
 clean:
 	rm -rf $(BUILD_DIR)
-
-# Run the test binary
-run: test
-	@./$(TEST_BIN)
 
 crun: clean run
 

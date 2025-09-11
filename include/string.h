@@ -9,7 +9,8 @@ typedef struct String {
     size_t cap;
 } String;
 
-size_t string_strlen(char* str);
-void string_clear(String* str);
+void str__create(char* str, size_t size);
+void str__clear(String* str);
+size_t str__len(char* str);
 
 #endif

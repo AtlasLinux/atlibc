@@ -1,6 +1,4 @@
-#include <int.h>
-
-long sys_call(long nr, long a1, long a2, long a3, long a4, long a5, long a6) {
+long __syscall(long nr, long a1, long a2, long a3, long a4, long a5, long a6) {
     long ret;
     register long r10 asm("r10") = a4;
     register long r8  asm("r8")  = a5;
